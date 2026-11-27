@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>고객 답변 초안 정리</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
+      </div>
+      <div>
+        <h1>고객 답변 초안 정리</h1>
+        <p>확인 결과와 조치 내용을 편하게 적으면, 고객에게 보낼 답변으로 정리합니다.</p>
+      </div>
+    </div>
+    <div class="pill" title="외부 서버·AI API를 사용하지 않으며 입력 내용을 저장하지 않습니다.">
+      <span class="dot"></span>오프라인 · 규칙 기반 · 입력 내용 저장 안 함
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="col">
+      <!-- 1. 입력 -->
+      <div class="card">
+        <div class="card-head">
+          <span class="step">1</span>
+          <h2>서술형 입력</h2>
+          <div class="head-actions">
+            <button type="button" class="btn ghost sm" id="sampleBtn">예시 불러오기</button>
+            <button type="button" class="btn ghost sm" id="clearBtn">지우기</button>
+          </div>
+        </div>
+        <textarea id="input" spellcheck="false" placeholder="예)
+고객이 로그인이 안 된다고 문의함.
+로그 확인해보니 세션 토큰 만료 처리 로직에 버그가 있었음.
+해당 로직 수정해서 오늘 오후 3시에 배포 완료함.
+고객에게 브라우저 캐시 삭제 후 재로그인하라고 안내 필요"></textarea>
+
+        <div class="fields">
+          <label class="field">
+            <span>고객명 <em>선택</em></span>
+            <input id="customerName" type="text" autocomplete="off" placeholder="비워두면 '고객님'">
+          </label>
+          <label class="field">
+            <span>보내는 사람 <em>선택</em></span>
+            <input id="sender" type="text" autocomplete="off" placeholder="예: 고객지원팀 김OO">
+          </label>
+        </div>
+
+        <div class="toggles">
+          <label class="switch"><input type="checkbox" id="optApology" checked><span class="track"></span>사과 문구 포함</label>
+          <label class="switch"><input type="checkbox" id="optPlain" checked><span class="track"></span>전문 용어 순화 <small>(배포→반영, 버그→오류 등)</small></label>
+        </div>
+
+        <div class="card-foot">
+          <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로 바로 정리</span>
+          <button type="button" class="btn primary" id="generateBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            답변 정리하기
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 분류 -->
+      <div class="card">
+        <div class="card-head">
+          <span class="step">2</span>
+          <h2>자동 분류</h2>
+          <span class="sub">분류가 다르면 항목을 바꾸거나 제외할 수 있습니다</span>
+        </div>
+        <div class="summary" id="summary"></div>
+        <ul class="items" id="items"></ul>
+        <div class="empty" id="itemsEmpty">입력한 문장이 여기에 항목별로 분류됩니다.</div>
+      </div>
+    </section>
+
+    <section class="col">
+      <!-- 3. 미리보기 -->
+      <div class="card preview-card">
+        <div class="card-head wrap">
+          <span class="step">3</span>
+          <h2>답변 미리보기</h2>
+          <div class="seg" role="radiogroup" aria-label="답변 형식" id="formatSeg">
+            <button type="button" role="radio" data-format="concise" aria-checked="false">간결형</button>
+            <button type="button" role="radio" data-format="polite" aria-checked="true">정중형</button>
+            <button type="button" role="radio" data-format="detailed" aria-checked="false">상세형</button>
+          </div>
+        </div>
+
+        <div class="notices" id="notices"></div>
+
+        <div class="stale" id="staleBar" hidden>
+          미리보기를 직접 수정한 상태입니다. 입력·옵션 변경 내용을 반영하려면
+          <button type="button" class="link" id="regenBtn">다시 생성</button>
+        </div>
+
+        <div class="preview" id="preview" contenteditable="true" spellcheck="false"
+             aria-label="답변 미리보기 (직접 수정 가능)" data-empty="왼쪽에 내용을 입력하면 답변 초안이 여기에 표시됩니다."></div>
+
+        <div class="card-foot">
+          <span class="hint" id="count">0자</span>
+          <span class="hint edit-hint">미리보기 영역은 직접 수정할 수 있습니다</span>
+          <button type="button" class="btn primary" id="copyBtn" disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            복사하기
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
