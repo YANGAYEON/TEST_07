@@ -17,4 +17,10 @@ public class App {
     public String index() {
         return "index";
     }
+
+    /** 업무 도식화 도구 (고객 설명용 / 개발자 설명용 흐름도) */
+    @GetMapping({"/diagram", "/diagram/"})
+    public String diagram() {
+        return "redirect:/diagram/index.html";
+    }
 }
