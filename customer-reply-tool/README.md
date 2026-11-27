@@ -51,3 +51,12 @@ js/req-app.js     요구사항 정리 화면, 탭 전환
 test/*.js         엔진 확인용 스크립트 (node test/run.js, node test/req.js)
 ```
 분류·변환 규칙은 `js/engine.js` 의 `RULES`, `CASUAL`, `JARGON`, `js/requirements.js` 의 `TYPES`, `PHRASE`, `VAGUE` 에서 수정할 수 있습니다.
+
+## 배포용 exe 만들기 (Windows)
+`main.go` 는 프로그램 파일을 exe 하나에 담는 실행기입니다. 실행하면 `%LOCALAPPDATA%\CustomerReplyTool` 에 파일을 풀고 기본 브라우저로 엽니다. 설치·인터넷이 필요 없습니다.
+
+```
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H windowsgui" -o dist/고객문의정리도구.exe .
+```
+- Go 1.21 이상 필요. 외부 패키지 없음.
+- 코드 서명이 없으므로 처음 실행 시 Windows SmartScreen 경고가 나올 수 있습니다 → "추가 정보 → 실행".
