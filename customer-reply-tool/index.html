@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>고객 답변 초안 정리</title>
+  <title>고객 문의 정리 도구</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -13,8 +13,8 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
       </div>
       <div>
-        <h1>고객 답변 초안 정리</h1>
-        <p>확인 결과와 조치 내용을 편하게 적으면, 고객에게 보낼 답변으로 정리합니다.</p>
+        <h1>고객 문의 정리 도구</h1>
+        <p id="tagline">확인 결과와 조치 내용을 편하게 적으면, 고객에게 보낼 답변으로 정리합니다.</p>
       </div>
     </div>
     <div class="pill" title="외부 서버·AI API를 사용하지 않으며 입력 내용을 저장하지 않습니다.">
@@ -22,7 +22,18 @@
     </div>
   </header>
 
-  <main class="layout">
+  <nav class="tabs" role="tablist" aria-label="기능 선택">
+    <button type="button" role="tab" id="tab-reply" aria-controls="view-reply" aria-selected="true">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      고객 답변 정리 <small>개발자 → 고객</small>
+    </button>
+    <button type="button" role="tab" id="tab-req" aria-controls="view-req" aria-selected="false">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      요구사항 정리 <small>고객 → 개발자</small>
+    </button>
+  </nav>
+
+  <main class="layout" id="view-reply" role="tabpanel" aria-labelledby="tab-reply">
     <section class="col">
       <!-- 1. 입력 -->
       <div class="card">
@@ -113,9 +124,79 @@
     </section>
   </main>
 
+  <!-- ============ 요구사항 정리 ============ -->
+  <main class="layout" id="view-req" role="tabpanel" aria-labelledby="tab-req" hidden>
+    <section class="col">
+      <div class="card">
+        <div class="card-head">
+          <span class="step">1</span>
+          <h2>고객 요청 원문</h2>
+          <div class="head-actions">
+            <button type="button" class="btn ghost sm" id="reqSampleBtn">예시 불러오기</button>
+            <button type="button" class="btn ghost sm" id="reqClearBtn">지우기</button>
+          </div>
+        </div>
+        <textarea id="reqInput" spellcheck="false" placeholder="메신저로 받은 고객 요청을 그대로 붙여넣으세요.
+
+예) 현재 신청 화면에서 신청일자를 직접 입력하고 있는데 매번 입력하기 불편합니다. 화면에 처음 들어왔을 때 오늘 날짜가 자동으로 들어가도록 해주세요."></textarea>
+
+        <div class="toggles">
+          <label class="switch"><input type="checkbox" id="reqOptBg" checked><span class="track"></span>현재 상황 포함</label>
+          <label class="switch"><input type="checkbox" id="reqOptCheck" checked><span class="track"></span>확인 필요 사항 포함</label>
+          <label class="switch"><input type="checkbox" id="reqOptSrc"><span class="track"></span>원문 문장 함께 표시</label>
+        </div>
+
+        <div class="card-foot">
+          <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로 바로 정리</span>
+          <button type="button" class="btn primary" id="reqGenerateBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            요구사항 정리하기
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="step">2</span>
+          <h2>문장 구분</h2>
+          <span class="sub">요구사항이 아닌 문장은 바꾸거나 제외할 수 있습니다</span>
+        </div>
+        <div class="summary three" id="reqSummary"></div>
+        <ul class="items" id="reqItems"></ul>
+        <div class="empty" id="reqItemsEmpty">고객 요청 문장이 여기에 요구사항 / 현재 상황 / 문의로 나뉘어 표시됩니다.</div>
+      </div>
+    </section>
+
+    <section class="col">
+      <div class="card preview-card">
+        <div class="card-head">
+          <span class="step">3</span>
+          <h2>개발자용 정리 결과</h2>
+        </div>
+        <div class="notices" id="reqNotices"></div>
+        <div class="stale" id="reqStaleBar" hidden>
+          결과를 직접 수정한 상태입니다. 변경 내용을 반영하려면
+          <button type="button" class="link" id="reqRegenBtn">다시 정리</button>
+        </div>
+        <div class="preview doc" id="reqPreview" contenteditable="true" spellcheck="false"
+             aria-label="요구사항 정리 결과 (직접 수정 가능)" data-empty="왼쪽에 고객 요청을 입력하면 요약과 세부 요구사항이 여기에 정리됩니다."></div>
+        <div class="card-foot">
+          <span class="hint" id="reqCount">요구사항 0건</span>
+          <span class="hint edit-hint">결과는 직접 수정할 수 있습니다</span>
+          <button type="button" class="btn primary" id="reqCopyBtn" disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            복사하기
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/engine.js"></script>
+  <script src="js/requirements.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/req-app.js"></script>
 </body>
 </html>

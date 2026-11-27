@@ -198,8 +198,8 @@
   }
 
   /* ---------- 복사 ---------- */
-  function copy() {
-    var text = previewText();
+  function copy() { copyText(previewText()); }
+  function copyText(text) {
     if (!text) return;
     var done = function () { toast('답변이 복사되었습니다'); };
     if (navigator.clipboard && window.isSecureContext) {
@@ -228,6 +228,8 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { el.toast.classList.remove('show'); }, 1800);
   }
+
+  window.UIUtil = { copyText: copyText, toast: toast, escapeHtml: escapeHtml };
 
   /* ---------- 이벤트 ---------- */
   var timer;
