@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ev="http://www.w3.org/2001/xml-events"
+      xmlns:w2="http://www.inswave.com/websquare" xmlns:xf="http://www.w3.org/2002/xforms">
+<head>
+  <title>제출내역 조회</title>
+  <w2:type>DEFAULT</w2:type>
+  <xf:model>
+    <xf:instance>
+      <data xmlns="">
+      </data>
+    </xf:instance>
+    <w2:dataCollection baseNode="map">
+      <w2:dataMap baseNode="map" id="dma_search">
+        <w2:keyInfo>
+          <w2:key id="startDt" name="시작일" dataType="text"/>
+          <w2:key id="endDt" name="종료일" dataType="text"/>
+          <w2:key id="reqStsCd" name="신청상태" dataType="text"/>
+          <w2:key id="submitNo" name="제출번호" dataType="text"/>
+        </w2:keyInfo>
+      </w2:dataMap>
+      <w2:dataList baseNode="list" id="dlt_submit" repeatNode="map">
+        <w2:columnInfo>
+          <w2:column id="chk" name="선택" dataType="text"/>
+          <w2:column id="submitNo" name="제출번호" dataType="text"/>
+          <w2:column id="reqDt" name="신청일자" dataType="text"/>
+          <w2:column id="reqStsNm" name="신청상태" dataType="text"/>
+          <w2:column id="userNm" name="신청자" dataType="text"/>
+        </w2:columnInfo>
+      </w2:dataList>
+    </w2:dataCollection>
+    <xf:submission id="sbm_search" ref="data:json,dma_search" target="data:json,dlt_submit"
+                   action="/submit/selectSubmitList.do" method="post" mediatype="application/json"/>
+    <xf:submission id="sbm_delete" ref="data:json,dlt_submit" action="/submit/deleteSubmit.do" method="post"/>
+  </xf:model>
+  <script type="text/javascript" lazy="false"><![CDATA[
+scwin.btn_search_onclick = function(e) {
+    if (!$c.data.validateGroup($p, grp_search)) return;
+    if (dma_search.get("startDt") > dma_search.get("endDt")) {
+        $c.win.alert($p, "시작일은 종료일보다 클 수 없습니다.");
+        return;
+    }
+    $c.sbm.execute($p, sbm_search);
+};
+scwin.btn_delete_onclick = function(e) {
+    var rows = grd_submit.getCheckedIndex("chk");
+    if (rows.length == 0) {
+        $c.win.alert($p, "삭제할 행을 선택하세요.");
+        return;
+    }
+    $c.win.confirm($p, "선택한 제출내역을 삭제하시겠습니까?", "scwin.deleteCallback");
+};
+scwin.deleteCallback = function(ret) {
+    if (ret) $c.sbm.execute($p, sbm_delete);
+};
+  ]]></script>
+</head>
+<body>
+  <xf:group id="grp_search" class="search_box">
+    <xf:group tagname="table">
+      <xf:group tagname="tr">
+        <xf:group tagname="th"><w2:textbox label="신청기간" class="req"/></xf:group>
+        <xf:group tagname="td">
+          <w2:inputCalendar id="ica_startDt" ref="data:dma_search.startDt" mandatory="true" calendarValueType="yearMonthDate"/>
+          <w2:inputCalendar id="ica_endDt" ref="data:dma_search.endDt" mandatory="true" calendarValueType="yearMonthDate"/>
+        </xf:group>
+        <xf:group tagname="th"><w2:textbox label="신청상태"/></xf:group>
+        <xf:group tagname="td">
+          <xf:select1 id="sbx_reqStsCd" ref="data:dma_search.reqStsCd" appearance="minimal" chooseOption="true" chooseOptionLabel="전체">
+            <xf:choices>
+              <xf:item><xf:label>신청</xf:label><xf:value>01</xf:value></xf:item>
+              <xf:item><xf:label>취소</xf:label><xf:value>02</xf:value></xf:item>
+              <xf:item><xf:label>완료</xf:label><xf:value>03</xf:value></xf:item>
+            </xf:choices>
+          </xf:select1>
+        </xf:group>
+        <xf:group tagname="th"><w2:textbox label="제출번호"/></xf:group>
+        <xf:group tagname="td">
+          <xf:input id="ibx_submitNo" ref="data:dma_search.submitNo" maxlength="20" allowChar="0-9"/>
+        </xf:group>
+      </xf:group>
+    </xf:group>
+    <xf:trigger id="btn_search" ev:onclick="scwin.btn_search_onclick"><xf:label>조회</xf:label></xf:trigger>
+  </xf:group>
+  <xf:group class="btn_area">
+    <xf:trigger id="btn_delete" ev:onclick="scwin.btn_delete_onclick"><xf:label>삭제</xf:label></xf:trigger>
+    <xf:trigger id="btn_excel" ev:onclick="scwin.btn_excel_onclick"><xf:label>엑셀다운로드</xf:label></xf:trigger>
+  </xf:group>
+  <w2:gridView id="grd_submit" dataList="data:dlt_submit" checkAllType="true" readOnly="true">
+    <w2:header id="header1">
+      <w2:row>
+        <w2:column id="h_chk" inputType="checkbox" value=""/>
+        <w2:column id="h_no" inputType="text" value="제출번호"/>
+        <w2:column id="h_dt" inputType="text" value="신청일자"/>
+        <w2:column id="h_sts" inputType="text" value="신청상태"/>
+        <w2:column id="h_user" inputType="text" value="신청자"/>
+      </w2:row>
+    </w2:header>
+    <w2:gBody id="gBody1">
+      <w2:row>
+        <w2:column id="chk" inputType="checkbox"/>
+        <w2:column id="submitNo" inputType="link"/>
+        <w2:column id="reqDt" inputType="text" displayFormat="####-##-##"/>
+        <w2:column id="reqStsNm" inputType="text"/>
+        <w2:column id="userNm" inputType="text"/>
+      </w2:row>
+    </w2:gBody>
+  </w2:gridView>
+</body>
+</html>
